@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AuraCare — Find a Doctor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#eef4fb;
+    --bg-1:#f7fafd;
+    --glass:rgba(255,255,255,0.62);
+    --glass-strong:rgba(255,255,255,0.86);
+    --border:rgba(15,45,90,0.09);
+    --border-strong:rgba(15,45,90,0.16);
+    --cyan:#0891b2;
+    --blue:#2563eb;
+    --teal:#0d9488;
+    --text:#0f2340;
+    --text-dim:#5b7089;
+    --text-dimmer:#93a6bc;
+    --good:#0d9488;
+    --warn:#d97706;
+    --radius:18px;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+    --shadow-soft:0 20px 45px -25px rgba(15,45,90,0.25);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:var(--font-body);
+    color:var(--text);
+    background:
+      radial-gradient(1100px 650px at 12% -10%, rgba(37,99,235,0.10), transparent 60%),
+      radial-gradient(900px 600px at 100% 0%, rgba(8,145,178,0.09), transparent 55%),
+      radial-gradient(800px 500px at 50% 110%, rgba(13,148,136,0.08), transparent 60%),
+      linear-gradient(180deg, var(--bg-1), var(--bg-0));
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:28px 16px;
+  }
+  .app{
+    width:100%;
+    max-width:900px;
+    display:flex;
+    flex-direction:column;
+    height:calc(100vh - 56px);
+    min-height:640px;
+  }
+
+  /* ---------- Header ---------- */
+  .header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:16px 22px;
+    border-radius:var(--radius);
+    background:linear-gradient(135deg, rgba(37,99,235,0.08), rgba(8,145,178,0.05));
+    border:1px solid var(--border);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    margin-bottom:14px;
+    box-shadow:var(--shadow-soft);
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:42px;height:42px;border-radius:13px;
+    background:linear-gradient(135deg,var(--blue),var(--cyan));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 0 1px rgba(255,255,255,0.25) inset, 0 8px 20px -6px rgba(8,145,178,0.45);
+    flex-shrink:0;
+  }
+  .brand-mark svg{width:22px;height:22px;}
+  .brand-text h1{
+    font-family:var(--font-display);
+    font-size:18px;font-weight:600;margin:0;letter-spacing:0.2px;
+    color:var(--text);
+  }
+  .brand-text p{margin:1px 0 0;font-size:12.5px;color:var(--text-dim);}
+  .live-pill{
+    display:flex;align-items:center;gap:7px;
+    padding:7px 12px;border-radius:100px;
+    background:var(--glass-strong);border:1px solid var(--border);
+    font-size:12px;color:var(--text-dim);white-space:nowrap;
+  }
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 0 rgba(13,148,136,0.5);animation:pulse-dot 2s infinite;}
+  @keyframes pulse-dot{
+    0%{box-shadow:0 0 0 0 rgba(13,148,136,0.45);}
+    70%{box-shadow:0 0 0 7px rgba(13,148,136,0);}
+    100%{box-shadow:0 0 0 0 rgba(13,148,136,0);}
+  }
+
+  /* ---------- Quick filter chips ---------- */
+  .chip-row{
+    display:flex;gap:8px;flex-wrap:wrap;
+    padding:2px 2px 14px;
+    max-height:78px;overflow-y:auto;
+  }
+  .chip{
+    font-family:var(--font-body);
+    font-size:12.5px;font-weight:500;color:var(--text-dim);
+    background:var(--glass-strong);border:1px solid var(--border);
+    padding:8px 13px;border-radius:100px;cursor:pointer;
+    transition:all .18s ease;
+    white-space:nowrap;
+  }
+  .chip:hover{color:var(--text);border-color:var(--border-strong);background:#fff;transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(15,45,90,0.3);}
+
+  /* ---------- Chat window ---------- */
+  .chat-panel{
+    flex:1;
+    display:flex;flex-direction:column;
+    border-radius:var(--radius);
+    background:var(--glass);
+    border:1px solid var(--border);
+    backdrop-filter:blur(22px);
+    -webkit-backdrop-filter:blur(22px);
+    overflow:hidden;
+    box-shadow:var(--shadow-soft);
+  }
+  .messages{
+    flex:1;overflow-y:auto;
+    padding:22px;
+    display:flex;flex-direction:column;gap:16px;
+    scroll-behavior:smooth;
+  }
+  .messages::-webkit-scrollbar{width:8px;}
+  .messages::-webkit-scrollbar-thumb{background:rgba(15,45,90,0.15);border-radius:8px;}
+  .messages::-webkit-scrollbar-track{background:transparent;}
+
+  .msg{display:flex;gap:10px;max-width:100%;animation:rise .35s ease both;}
+  @keyframes rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .msg.user{justify-content:flex-end;}
+  .avatar{
+    width:30px;height:30px;border-radius:9px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;
+  }
+  .avatar.bot{background:linear-gradient(135deg,var(--blue),var(--cyan));box-shadow:0 0 0 1px rgba(255,255,255,0.25) inset;}
+  .avatar.bot svg{width:16px;height:16px;}
+  .bubble{
+    padding:12px 15px;border-radius:14px;
+    font-size:14.5px;line-height:1.55;
+    max-width:78%;
+  }
+  .msg.bot .bubble{
+    background:#ffffff;
+    border:1px solid var(--border);
+    border-top-left-radius:4px;
+    color:var(--text);
+    box-shadow:0 10px 24px -18px rgba(15,45,90,0.35);
+  }
+  .msg.user .bubble{
+    background:linear-gradient(135deg,var(--blue),#1d4ed8);
+    border-top-right-radius:4px;
+    color:#f5f9ff;
+    font-weight:500;
+  }
+  .typing{display:flex;gap:4px;padding:4px 2px;}
+  .typing span{width:6px;height:6px;border-radius:50%;background:var(--text-dim);animation:tb 1.1s infinite ease-in-out;}
+  .typing span:nth-child(2){animation-delay:.15s;}
+  .typing span:nth-child(3){animation-delay:.3s;}
+  @keyframes tb{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-4px);opacity:1;}}
+
+  /* ---------- Doctor cards ---------- */
+  .results{
+    display:flex;flex-direction:column;gap:12px;
+    max-width:100%;width:100%;
+  }
+  .dr-card{
+    border-radius:16px;
+    background:linear-gradient(160deg, rgba(255,255,255,0.95), rgba(240,246,252,0.9));
+    border:1px solid var(--border);
+    padding:16px 18px;
+    transition:border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+  .dr-card:hover{border-color:var(--border-strong);box-shadow:0 14px 30px -20px rgba(15,45,90,0.35);}
+  .dr-top{display:flex;gap:13px;align-items:flex-start;}
+  .dr-avatar{
+    width:52px;height:52px;border-radius:14px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:600;font-size:16px;
+    color:#0b2f42;
+  }
+  .dr-info{flex:1;min-width:0;}
+  .dr-name-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .dr-name{font-family:var(--font-display);font-size:15.5px;font-weight:600;margin:0;color:var(--text);}
+  .dept-badge{
+    font-size:11px;font-weight:500;padding:3px 9px;border-radius:100px;
+    background:rgba(8,145,178,0.1);color:#0e6579;
+    border:1px solid rgba(8,145,178,0.25);
+    white-space:nowrap;
+  }
+  .dr-sub{font-size:12.5px;color:var(--text-dim);margin:3px 0 0;}
+  .dr-meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;}
+  .meta-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-dim);}
+  .meta-item svg{width:13px;height:13px;flex-shrink:0;opacity:.75;}
+  .meta-item b{color:var(--text);font-weight:600;}
+  .stars{color:var(--warn);letter-spacing:1px;font-size:11px;}
+
+  .status-row{display:flex;align-items:center;gap:8px;margin-top:12px;}
+  .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .status-dot.avail{background:var(--good);box-shadow:0 0 0 0 rgba(13,148,136,0.45);animation:pulse-dot 2.2s infinite;}
+  .status-dot.busy{background:var(--warn);}
+  .status-text{font-size:12.5px;font-weight:500;}
+  .status-text.avail{color:#0b7a6e;}
+  .status-text.busy{color:#b06207;}
+  .next-slot{font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);margin-left:auto;}
+
+  .slot-toggle{
+    margin-top:12px;
+    font-size:12px;font-weight:500;color:var(--blue);
+    cursor:pointer;display:inline-flex;align-items:center;gap:5px;
+    user-select:none;
+  }
+  .slot-toggle svg{width:12px;height:12px;transition:transform .2s ease;}
+  .slot-toggle.open svg{transform:rotate(180deg);}
+
+  .schedule{
+    display:none;
+    margin-top:12px;padding-top:12px;
+    border-top:1px solid var(--border);
+    flex-direction:column;gap:10px;
+  }
+  .schedule.open{display:flex;}
+  .day-block{}
+  .day-label{font-size:11.5px;font-weight:600;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+  .slot-grid{display:flex;flex-wrap:wrap;gap:6px;}
+  .slot-chip{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    padding:6px 10px;border-radius:8px;
+    border:1px solid var(--border);
+    background:rgba(15,45,90,0.03);
+    color:var(--text-dim);
+    cursor:default;
+  }
+  .slot-chip.free{
+    color:#0b7a6e;
+    border-color:rgba(13,148,136,0.3);
+    background:rgba(13,148,136,0.09);
+    cursor:pointer;
+  }
+  .slot-chip.free:hover{background:rgba(13,148,136,0.2);border-color:rgba(13,148,136,0.5);}
+  .slot-chip.taken{text-decoration:line-through;opacity:.5;}
+
+  .dr-foot{display:flex;align-items:center;justify-content:space-between;margin-top:13px;gap:10px;}
+  .fee{font-size:12.5px;color:var(--text-dim);}
+  .fee b{color:var(--text);font-family:var(--font-mono);font-weight:500;}
+  .book-btn{
+    font-family:var(--font-body);
+    font-size:12.5px;font-weight:600;
+    padding:8px 16px;border-radius:10px;border:none;
+    background:linear-gradient(135deg,var(--blue),var(--cyan));
+    color:#ffffff;cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .book-btn:hover{transform:translateY(-1px);box-shadow:0 8px 18px -8px rgba(8,145,178,0.5);}
+  .book-btn:active{transform:translateY(0);}
+
+  .no-results{
+    font-size:13.5px;color:var(--text-dim);
+    padding:4px 2px;
+  }
+
+  /* ---------- Input bar ---------- */
+  .input-bar{
+    display:flex;align-items:center;gap:10px;
+    padding:14px 16px;
+    border-top:1px solid var(--border);
+    background:rgba(255,255,255,0.5);
+  }
+  .input-bar input{
+    flex:1;
+    background:#ffffff;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 14px;
+    color:var(--text);
+    font-family:var(--font-body);
+    font-size:14px;
+    outline:none;
+    transition:border-color .15s ease;
+  }
+  .input-bar input:focus{border-color:var(--blue);}
+  .input-bar input::placeholder{color:var(--text-dimmer);}
+  .send-btn{
+    width:42px;height:42px;border-radius:12px;border:none;flex-shrink:0;
+    background:linear-gradient(135deg,var(--blue),var(--cyan));
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:transform .15s ease;
+  }
+  .send-btn:hover{transform:scale(1.05);}
+  .send-btn:active{transform:scale(0.96);}
+  .send-btn svg{width:18px;height:18px;color:#ffffff;}
+
+  @media (max-width:600px){
+    .app{height:calc(100vh - 40px);}
+    .brand-text p{display:none;}
+    .live-pill span.live-label{display:none;}
+    .dr-meta{gap:10px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </div>
+      <div class="brand-text">
+        <h1>AuraCare Assistant</h1>
+        <p>Find the right doctor, right now</p>
+      </div>
+    </div>
+    <div class="live-pill"><span class="live-dot"></span><span class="live-label">Live availability</span></div>
+  </div>
+
+  <div class="chip-row" id="chipRow"></div>
+
+  <div class="chat-panel">
+    <div class="messages" id="messages"></div>
+    <div class="input-bar">
+      <input type="text" id="userInput" placeholder="Try “cardiologist available today” or a doctor's name…" autocomplete="off">
+      <button class="send-btn" id="sendBtn" aria-label="Send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ---------------- Data ---------------- */
+const DEPARTMENTS = [
+  "Cardiology","Neurology","Pediatrics","Orthopedics","Dermatology","ENT",
+  "Gynecology","General Medicine","Psychiatry","Ophthalmology","Urology",
+  "Oncology","Gastroenterology","Nephrology","Pulmonology","Endocrinology",
+  "Dentistry","Nutrition & Dietetics","Emergency Medicine","Radiology"
+];
+
+const SYMPTOM_MAP = [
+  {kw:["chest pain","heart","palpitation","bp","blood pressure"], dept:"Cardiology"},
+  {kw:["headache","migraine","seizure","numbness","stroke","memory"], dept:"Neurology"},
+  {kw:["child","kid","baby","infant","vaccination"], dept:"Pediatrics"},
+  {kw:["bone","fracture","joint","knee","back pain","sports injury"], dept:"Orthopedics"},
+  {kw:["skin","rash","acne","allergy","eczema"], dept:"Dermatology"},
+  {kw:["ear","nose","throat","sinus","hearing"], dept:"ENT"},
+  {kw:["pregnan","period","gynec","menstrual","fertility"], dept:"Gynecology"},
+  {kw:["fever","cold","flu","cough","general","checkup"], dept:"General Medicine"},
+  {kw:["anxiety","stress","depress","sleep","mental"], dept:"Psychiatry"},
+  {kw:["eye","vision","blurry","glasses"], dept:"Ophthalmology"},
+  {kw:["urin","kidney stone","bladder","prostate"], dept:"Urology"},
+  {kw:["cancer","tumor","chemo","oncolog"], dept:"Oncology"},
+  {kw:["stomach","digest","acidity","liver","gastric"], dept:"Gastroenterology"},
+  {kw:["kidney","dialysis","renal"], dept:"Nephrology"},
+  {kw:["lung","breath","asthma","pulmon"], dept:"Pulmonology"},
+  {kw:["thyroid","diabetes","hormone","sugar"], dept:"Endocrinology"},
+  {kw:["tooth","teeth","dental","gum"], dept:"Dentistry"},
+  {kw:["diet","weight","nutrition"], dept:"Nutrition & Dietetics"},
+  {kw:["emergency","accident","trauma","urgent"], dept:"Emergency Medicine"},
+  {kw:["scan","x-ray","mri","ct scan","imaging"], dept:"Radiology"}
+];
+
+const RAW_DOCTORS = [
+  {name:"Dr. Ananya Rao", dept:"Cardiology", exp:14, rating:4.9, reviews:312, fee:800, gradient:["#93c5fd","#22d3ee"], bio:"Interventional cardiologist focused on preventive heart care and angioplasty."},
+  {name:"Dr. Vikram Sethi", dept:"Cardiology", exp:9, rating:4.7, reviews:190, fee:650, gradient:["#a5b4fc","#38bdf8"], bio:"Specialist in arrhythmia management and non-invasive cardiac diagnostics."},
+  {name:"Dr. Meera Iyer", dept:"Neurology", exp:16, rating:4.8, reviews:275, fee:900, gradient:["#c4b5fd","#818cf8"], bio:"Treats migraines, epilepsy, and stroke rehabilitation with a patient-first approach."},
+  {name:"Dr. Rohan Kulkarni", dept:"Neurology", exp:7, rating:4.6, reviews:98, fee:700, gradient:["#a7f3d0","#5eead4"], bio:"Focuses on movement disorders and nerve-related conditions."},
+  {name:"Dr. Priya Nair", dept:"Pediatrics", exp:11, rating:4.9, reviews:401, fee:500, gradient:["#fde68a","#fca5a5"], bio:"Gentle, family-centered pediatric care from newborns to teens."},
+  {name:"Dr. Karan Malhotra", dept:"Orthopedics", exp:13, rating:4.7, reviews:220, fee:750, gradient:["#93c5fd","#a78bfa"], bio:"Joint replacement and sports injury specialist."},
+  {name:"Dr. Fatima Sheikh", dept:"Dermatology", exp:8, rating:4.8, reviews:264, fee:600, gradient:["#fbcfe8","#f9a8d4"], bio:"Cosmetic and clinical dermatology with a focus on acne and skin allergies."},
+  {name:"Dr. Arjun Reddy", dept:"ENT", exp:10, rating:4.6, reviews:150, fee:550, gradient:["#bae6fd","#7dd3fc"], bio:"Manages sinus, hearing, and throat conditions for all ages."},
+  {name:"Dr. Sneha Kapoor", dept:"Gynecology", exp:15, rating:4.9, reviews:340, fee:700, gradient:["#fecdd3","#fda4af"], bio:"Comprehensive women's health, prenatal, and fertility care."},
+  {name:"Dr. Aditya Verma", dept:"General Medicine", exp:6, rating:4.5, reviews:130, fee:400, gradient:["#bbf7d0","#86efac"], bio:"Primary care physician for everyday illness and preventive checkups."},
+  {name:"Dr. Naina Bhatt", dept:"Psychiatry", exp:12, rating:4.8, reviews:180, fee:850, gradient:["#ddd6fe","#c4b5fd"], bio:"Specializes in anxiety, mood disorders, and sleep-related concerns."},
+  {name:"Dr. Sameer Joshi", dept:"Ophthalmology", exp:9, rating:4.7, reviews:160, fee:600, gradient:["#a5f3fc","#67e8f9"], bio:"Cataract, LASIK, and general eye-care specialist."},
+  {name:"Dr. Ishaan Chawla", dept:"Urology", exp:11, rating:4.6, reviews:140, fee:700, gradient:["#bfdbfe","#93c5fd"], bio:"Treats kidney stones, prostate issues, and urinary tract conditions."},
+  {name:"Dr. Ritu Desai", dept:"Oncology", exp:18, rating:4.9, reviews:210, fee:1200, gradient:["#fecaca","#fda4af"], bio:"Medical oncologist with a focus on early detection and personalized treatment."},
+  {name:"Dr. Manav Pillai", dept:"Gastroenterology", exp:10, rating:4.6, reviews:175, fee:650, gradient:["#fde68a","#fdba74"], bio:"Specializes in digestive disorders, liver disease, and endoscopy."},
+  {name:"Dr. Kavya Menon", dept:"Nephrology", exp:13, rating:4.7, reviews:120, fee:750, gradient:["#a5f3fc","#5eead4"], bio:"Manages chronic kidney disease and dialysis care."},
+  {name:"Dr. Rajeev Nanda", dept:"Pulmonology", exp:12, rating:4.7, reviews:165, fee:700, gradient:["#bae6fd","#a5b4fc"], bio:"Treats asthma, COPD, and other respiratory conditions."},
+  {name:"Dr. Divya Krishnan", dept:"Endocrinology", exp:9, rating:4.8, reviews:190, fee:680, gradient:["#fde68a","#fca5a5"], bio:"Focuses on diabetes, thyroid, and hormonal health."},
+  {name:"Dr. Yusuf Khan", dept:"Dentistry", exp:8, rating:4.8, reviews:230, fee:450, gradient:["#e0e7ff","#c7d2fe"], bio:"General and cosmetic dentistry, from cleanings to root canals."},
+  {name:"Dr. Alisha Fernandes", dept:"Nutrition & Dietetics", exp:6, rating:4.7, reviews:110, fee:400, gradient:["#bbf7d0","#a7f3d0"], bio:"Clinical dietitian helping with weight, diabetes, and lifestyle nutrition."},
+  {name:"Dr. Harish Bhalla", dept:"Emergency Medicine", exp:14, rating:4.6, reviews:95, fee:900, gradient:["#fecaca","#fecdd3"], bio:"Handles urgent and trauma cases around the clock."},
+  {name:"Dr. Neha Srivastava", dept:"Radiology", exp:11, rating:4.7, reviews:100, fee:500, gradient:["#e0e7ff","#bae6fd"], bio:"Reads X-rays, MRIs, and CT scans for accurate diagnosis."}
+];
+
+function initials(name){
+  return name.replace("Dr. ","").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+}
+
+/* Deterministic pseudo-random so availability stays stable per doctor */
+function seedRand(seed){
+  let x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+function buildAvailability(idx){
+  const days = ["Today","Tomorrow","Wed, Jul 10"];
+  const baseSlots = ["09:00","09:30","10:00","10:30","11:30","12:00","14:00","14:30","15:30","16:00","16:30","17:00"];
+  const schedule = {};
+  days.forEach((day, dIdx)=>{
+    const slots = baseSlots.map((t,tIdx)=>{
+      const r = seedRand(idx*97 + dIdx*13 + tIdx*7 + 1);
+      return {time:t, free: r > 0.42};
+    });
+    schedule[day] = slots;
+  });
+  return schedule;
+}
+
+const DOCTORS = RAW_DOCTORS.map((d,i)=>{
+  const schedule = buildAvailability(i);
+  let nextSlot = null;
+  outer:
+  for(const day of Object.keys(schedule)){
+    for(const s of schedule[day]){
+      if(s.free){ nextSlot = {day, time:s.time}; break outer; }
+    }
+  }
+  return {...d, id:"doc-"+i, initials:initials(d.name), schedule, nextSlot, available: !!nextSlot};
+});
+
+/* ---------------- Search ---------------- */
+function detectDepartment(query){
+  const q = query.toLowerCase();
+  for(const dept of DEPARTMENTS){
+    if(q.includes(dept.toLowerCase())) return dept;
+  }
+  for(const entry of SYMPTOM_MAP){
+    if(entry.kw.some(k=>q.includes(k))) return entry.dept;
+  }
+  return null;
+}
+
+function searchDoctors(query){
+  const q = query.toLowerCase().trim();
+  if(!q) return [];
+
+  const wantsAvailableToday = /today/.test(q);
+  const nameMatch = DOCTORS.filter(d => q.includes(d.name.toLowerCase().replace("dr. ","")) || d.name.toLowerCase().includes(q));
+  if(nameMatch.length) return nameMatch;
+
+  const dept = detectDepartment(q);
+  let pool = dept ? DOCTORS.filter(d=>d.dept===dept) : [];
+
+  if(!pool.length && (q.includes("doctor") || q.includes("available") || q.includes("all"))){
+    pool = DOCTORS.slice();
+  }
+
+  if(wantsAvailableToday){
+    pool = pool.filter(d => d.schedule["Today"].some(s=>s.free));
+  }
+  return pool;
+}
+
+/* ---------------- Rendering ---------------- */
+const messagesEl = document.getElementById("messages");
+const inputEl = document.getElementById("userInput");
+const sendBtn = document.getElementById("sendBtn");
+const chipRow = document.getElementById("chipRow");
+
+function scrollToBottom(){
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function addUserMessage(text){
+  const wrap = document.createElement("div");
+  wrap.className = "msg user";
+  wrap.innerHTML = `<div class="bubble"></div>`;
+  wrap.querySelector(".bubble").textContent = text;
+  messagesEl.appendChild(wrap);
+  scrollToBottom();
+}
+
+function botIconSVG(){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+}
+
+function addBotTyping(){
+  const wrap = document.createElement("div");
+  wrap.className = "msg bot";
+  wrap.id = "typing-indicator";
+  wrap.innerHTML = `
+    <div class="avatar bot">${botIconSVG()}</div>
+    <div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>
+  `;
+  messagesEl.appendChild(wrap);
+  scrollToBottom();
+}
+
+function removeTyping(){
+  const el = document.getElementById("typing-indicator");
+  if(el) el.remove();
+}
+
+function addBotText(html){
+  const wrap = document.createElement("div");
+  wrap.className = "msg bot";
+  wrap.innerHTML = `<div class="avatar bot">${botIconSVG()}</div><div class="bubble">${html}</div>`;
+  messagesEl.appendChild(wrap);
+  scrollToBottom();
+}
+
+function clockSVG(){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+}
+function starSVGRow(rating){
+  const full = Math.round(rating);
+  return "★".repeat(full) + "☆".repeat(5-full);
+}
+function briefcaseSVG(){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`;
+}
+function chevronSVG(){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+}
+
+function renderDoctorCard(doc){
+  const statusClass = doc.available ? "avail" : "busy";
+  const statusText = doc.available
+    ? `Next slot ${doc.nextSlot.day === "Today" ? "today" : doc.nextSlot.day} · ${doc.nextSlot.time}`
+    : "Fully booked in next 3 days";
+
+  const scheduleHTML = Object.keys(doc.schedule).map(day=>{
+    const chips = doc.schedule[day].map(s=>{
+      const cls = s.free ? "slot-chip free" : "slot-chip taken";
+      return `<span class="${cls}" ${s.free ? `onclick="bookSlot('${doc.id}','${day}','${s.time}')"` : ""}>${s.time}</span>`;
+    }).join("");
+    return `<div class="day-block"><div class="day-label">${day}</div><div class="slot-grid">${chips}</div></div>`;
+  }).join("");
+
+  return `
+  <div class="dr-card" data-doc="${doc.id}">
+    <div class="dr-top">
+      <div class="dr-avatar" style="background:linear-gradient(135deg, ${doc.gradient[0]}, ${doc.gradient[1]});">${doc.initials}</div>
+      <div class="dr-info">
+        <div class="dr-name-row">
+          <p class="dr-name">${doc.name}</p>
+          <span class="dept-badge">${doc.dept}</span>
+        </div>
+        <p class="dr-sub">${doc.bio}</p>
+        <div class="dr-meta">
+          <div class="meta-item">${briefcaseSVG()}<span><b>${doc.exp} yrs</b> experience</span></div>
+          <div class="meta-item"><span class="stars">${starSVGRow(doc.rating)}</span><span><b>${doc.rating}</b> (${doc.reviews})</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-row">
+      <span class="status-dot ${statusClass}"></span>
+      <span class="status-text ${statusClass}">${statusText}</span>
+    </div>
+
+    <div class="slot-toggle" onclick="toggleSchedule('${doc.id}', this)">
+      ${clockSVG()} View full 3-day schedule ${chevronSVG()}
+    </div>
+    <div class="schedule" id="schedule-${doc.id}">${scheduleHTML}</div>
+
+    <div class="dr-foot">
+      <span class="fee">Consultation fee <b>₹${doc.fee}</b></span>
+      <button class="book-btn" onclick="bookSlot('${doc.id}','${doc.nextSlot ? doc.nextSlot.day : ''}','${doc.nextSlot ? doc.nextSlot.time : ''}')" ${doc.available ? "" : "disabled style='opacity:.45;cursor:not-allowed;'"}>
+        ${doc.available ? "Book earliest slot" : "Join waitlist"}
+      </button>
+    </div>
+  </div>`;
+}
+
+function addDoctorResults(doctors, introText){
+  const wrap = document.createElement("div");
+  wrap.className = "msg bot";
+  const cardsHTML = doctors.length
+    ? `<div class="results">${doctors.map(renderDoctorCard).join("")}</div>`
+    : `<div class="no-results">No doctors matched that search. Try a department name like “Cardiology” or a symptom like “headache”.</div>`;
+  wrap.innerHTML = `<div class="avatar bot">${botIconSVG()}</div><div class="bubble" style="max-width:100%;">${introText}${cardsHTML}</div>`;
+  messagesEl.appendChild(wrap);
+  scrollToBottom();
+}
+
+window.toggleSchedule = function(id, el){
+  const panel = document.getElementById("schedule-"+id);
+  panel.classList.toggle("open");
+  el.classList.toggle("open");
+};
+
+window.bookSlot = function(id, day, time){
+  const doc = DOCTORS.find(d=>d.id===id);
+  if(!doc || !day || !time) return;
+  addUserMessage(`Book ${doc.name} — ${day} at ${time}`);
+  addBotTyping();
+  setTimeout(()=>{
+    removeTyping();
+    addBotText(`Your appointment request with <b>${doc.name}</b> (${doc.dept}) for <b>${day} at ${time}</b> has been sent. You'll get a confirmation shortly.`);
+  }, 700);
+};
+
+/* ---------------- Chat flow ---------------- */
+function handleQuery(text){
+  addUserMessage(text);
+  addBotTyping();
+  setTimeout(()=>{
+    removeTyping();
+    const results = searchDoctors(text);
+    let intro = "";
+    if(results.length){
+      const dept = detectDepartment(text);
+      intro = `<p style="margin:0 0 4px;">Here${results.length>1?"'s who's":"'s who is"} available${dept ? " in <b>"+dept+"</b>" : ""}:</p>`;
+    } else {
+      intro = "";
+    }
+    addDoctorResults(results, intro);
+  }, 750);
+}
+
+function sendCurrentInput(){
+  const val = inputEl.value.trim();
+  if(!val) return;
+  inputEl.value = "";
+  handleQuery(val);
+}
+
+sendBtn.addEventListener("click", sendCurrentInput);
+inputEl.addEventListener("keydown", (e)=>{ if(e.key === "Enter") sendCurrentInput(); });
+
+/* ---------------- Quick chips ---------------- */
+const QUICK_CHIPS = [
+  "Doctors available today",
+  "Cardiologist",
+  "Pediatrics",
+  "I have a headache",
+  "Skin rash",
+  "Gynecology",
+  "Diabetes checkup",
+  "Dental",
+  "Eye checkup"
+];
+QUICK_CHIPS.forEach(label=>{
+  const c = document.createElement("div");
+  c.className = "chip";
+  c.textContent = label;
+  c.onclick = ()=> handleQuery(label);
+  chipRow.appendChild(c);
+});
+
+/* ---------------- Welcome message ---------------- */
+window.addEventListener("DOMContentLoaded", ()=>{
+  addBotText(`Hi, I'm your AuraCare assistant. Tell me a doctor's name, a department, or how you're feeling — like “I have a headache” — and I'll show you who's available and when. We now cover <b>${DEPARTMENTS.length} departments</b> across the hospital.`);
+});
+</script>
+</body>
+</html>
